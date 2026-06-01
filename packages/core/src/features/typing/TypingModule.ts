@@ -1,10 +1,5 @@
 import { EventRouter } from '../../runtime/EventRouter';
-
-export interface TypingEvent {
-  roomId: string;
-  userId: string;
-  isTyping: boolean;
-}
+import type { TypingEvent } from '../../shared/types';
 
 export function createTypingModule(eventRouter: EventRouter) {
   const listeners: Set<(event: TypingEvent) => void> = new Set();

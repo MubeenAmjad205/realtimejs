@@ -1,17 +1,7 @@
 import { EventRouter } from '../../runtime/EventRouter';
 import { AdapterRegistry } from '../../core/config/registry/AdapterRegistry';
-
-export interface Message {
-  id: string;
-  roomId: string;
-  userId: string;
-  content: string;
-  createdAt: number;
-  editedAt?: number;
-  isDeleted?: boolean;
-  threadId?: string;
-  reactions?: Record<string, string[]>;
-}
+import type { Message } from '../../shared/types';
+import { generateId, getCurrentTimestamp } from '../../shared/utils';
 
 export function createChatModule(eventRouter: EventRouter, registry: AdapterRegistry) {
   const db = registry.getDatabase(); // Optional Database
@@ -40,11 +30,11 @@ export function createChatModule(eventRouter: EventRouter, registry: AdapterRegi
   return {
     sendMessage: async (roomId: string, content: string, userId: string, threadId?: string) => {
       const message: Message = {
-        id: Math.random().toString(36).substring(2, 15),
+        id: generateId(),
         roomId,
         userId,
         content,
-        createdAt: Date.now(),
+        createdAt: getCurrentTimestamp(),
         ...(threadId ? { threadId } : {}),
       };
       
@@ -57,7 +47,7 @@ export function createChatModule(eventRouter: EventRouter, registry: AdapterRegi
     },
     
     editMessage: async (messageId: string, content: string) => {
-      const editedAt = Date.now();
+      const editedAt = getCurrentTimestamp();
       
       if (db) {
         await db.update('messages', messageId, { content, editedAt });

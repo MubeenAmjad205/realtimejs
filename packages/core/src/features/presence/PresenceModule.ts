@@ -1,12 +1,6 @@
 import { EventRouter } from '../../runtime/EventRouter';
-
-export type UserStatus = 'online' | 'offline' | 'away' | 'busy';
-
-export interface PresenceUpdate {
-  userId: string;
-  status: UserStatus;
-  lastSeen: number;
-}
+import type { UserStatus, PresenceUpdate } from '../../shared/types';
+import { getCurrentTimestamp } from '../../shared/utils';
 
 export function createPresenceModule(eventRouter: EventRouter) {
   const listeners: Set<(update: PresenceUpdate) => void> = new Set();
@@ -20,7 +14,7 @@ export function createPresenceModule(eventRouter: EventRouter) {
       const update: PresenceUpdate = {
         userId,
         status,
-        lastSeen: Date.now(),
+        lastSeen: getCurrentTimestamp(),
       };
       await eventRouter.emit('presence:update', update);
     },

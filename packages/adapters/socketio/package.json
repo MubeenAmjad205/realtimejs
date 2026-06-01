@@ -15,7 +15,9 @@
   "author": "Mubeen Amjad",
   "license": "MIT",
   "scripts": {
-    "build": "tsc"
+    "build": "tsc",
+    "test": "vitest run --passWithNoTests",
+    "typecheck": "tsc --noEmit"
   },
   "peerDependencies": {
     "@realtimejs/core": "^0.1.0"

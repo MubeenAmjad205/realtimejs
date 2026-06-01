@@ -10,6 +10,8 @@ export * from './features/rooms/RoomManager';
 export * from './features/chat/ChatModule';
 export * from './features/presence/PresenceModule';
 export * from './features/typing/TypingModule';
+export * from './features/session/SessionManager';
+export * from './runtime/PluginManager';
 
 import { createAdapterRegistry, AdapterRegistryState } from './core/config/registry/AdapterRegistry';
 import { createConnectionManager } from './runtime/ConnectionManager';
@@ -18,10 +20,14 @@ import { createRoomManager } from './features/rooms/RoomManager';
 import { createChatModule } from './features/chat/ChatModule';
 import { createPresenceModule } from './features/presence/PresenceModule';
 import { createTypingModule } from './features/typing/TypingModule';
+import { createSessionManager } from './features/session/SessionManager';
+import { createPluginManager } from './runtime/PluginManager';
 
-// Constants
+// Constants & Types
 export * from './shared/constants/flags';
 export * from './shared/constants/config';
+export * from './shared/types';
+export * from './shared/utils';
 import { FEATURE_FLAGS } from './shared/constants/flags';
 
 export function createRealtime(config: AdapterRegistryState) {
@@ -35,10 +41,11 @@ export function createRealtime(config: AdapterRegistryState) {
   
   const rooms = createRoomManager(events);
   
-  // Conditionally load features based on mandatory feature flags
   const chat = FEATURE_FLAGS.ENABLE_CHAT ? createChatModule(events, registry) : null;
   const presence = FEATURE_FLAGS.ENABLE_PRESENCE ? createPresenceModule(events) : null;
   const typing = FEATURE_FLAGS.ENABLE_TYPING ? createTypingModule(events) : null;
+  const session = createSessionManager(events, registry);
+  const plugins = createPluginManager();
 
   return {
     registry,
@@ -48,5 +55,7 @@ export function createRealtime(config: AdapterRegistryState) {
     chat,
     presence,
     typing,
+    session,
+    plugins,
   };
 }

@@ -56,25 +56,70 @@ export function useChat(roomId: string, userId: string) {
   useEffect(() => {
     client.rooms.join(roomId).catch(console.error);
 
-    const unsubscribe = client.chat!.onMessage((msg) => {
+    const unsubMessage = client.chat!.onMessage((msg) => {
       if (msg.roomId === roomId) {
         setMessages((prev) => [...prev, msg]);
       }
     });
 
+    const unsubEdit = client.chat!.onMessageEdited((editedMsg) => {
+      setMessages((prev) => prev.map(m => m.id === editedMsg.id ? { ...m, ...editedMsg } : m));
+    });
+
+    const unsubDelete = client.chat!.onMessageDeleted((messageId) => {
+      setMessages((prev) => prev.map(m => m.id === messageId ? { ...m, isDeleted: true } : m));
+    });
+
+    const unsubReact = client.chat!.onReactionChanged((payload) => {
+      setMessages((prev) => prev.map(m => {
+        if (m.id === payload.messageId) {
+          const reactions = m.reactions ? { ...m.reactions } : {};
+          const users = reactions[payload.emoji] || [];
+          reactions[payload.emoji] = [...new Set([...users, payload.userId])];
+          return { ...m, reactions };
+        }
+        return m;
+      }));
+    });
+
     return () => {
-      unsubscribe();
+      unsubMessage();
+      unsubEdit();
+      unsubDelete();
+      unsubReact();
       client.rooms.leave(roomId).catch(console.error);
     };
   }, [client, roomId]);
 
-  const sendMessage = async (content: string) => {
-    await client.chat!.sendMessage(roomId, content, userId);
+  const sendMessage = async (content: string, threadId?: string) => {
+    await client.chat!.sendMessage(roomId, content, userId, threadId);
+  };
+  
+  const editMessage = async (messageId: string, content: string) => {
+    await client.chat!.editMessage(messageId, content);
+  };
+  
+  const deleteMessage = async (messageId: string) => {
+    await client.chat!.deleteMessage(messageId);
+  };
+  
+  const toggleReaction = async (messageId: string, emoji: string) => {
+    await client.chat!.toggleReaction(messageId, emoji, userId);
+  };
+  
+  const loadHistory = async (limit?: number, cursor?: string) => {
+    const history = await client.chat!.getMessages(roomId, limit, cursor);
+    setMessages((prev) => [...history, ...prev]);
+    return history;
   };
 
   return {
     messages,
     sendMessage,
+    editMessage,
+    deleteMessage,
+    toggleReaction,
+    loadHistory,
   };
 }
 
