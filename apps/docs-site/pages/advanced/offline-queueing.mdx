@@ -1,0 +1,42 @@
+# Offline Queueing
+
+RealtimeJS is designed with the assumption that network connections are inherently unstable. Users will enter elevators, drive through tunnels, or simply experience ISP dropouts.
+
+The framework handles this transparently using an **Offline Queueing architecture**.
+
+## How It Works
+
+When a user attempts to send a message via `client.chat.sendMessage()` or the `<MessageInput />` component, RealtimeJS checks the status of the `TransportAdapter`.
+
+1. **If Connected:** The message is instantly forwarded to the server.
+2. **If Disconnected:** The message is pushed into an in-memory `offlineQueue`.
+3. **Optimistic Render:** In both cases, the React SDK instantly renders the message in the UI with a `status` of `"sending"`.
+
+## Automatic Reconnection
+
+You do not need to write any code to handle reconnections.
+
+When the `TransportAdapter` successfully reconnects to the server, it fires an internal event. The `ChatModule` intercepts this event, flushes the `offlineQueue`, and pushes all pending messages to the server in chronological order.
+
+## Accessing Message Status
+
+If you are building a custom UI, you can visually distinguish queued messages by reading the `status` property on the `Message` object.
+
+```tsx
+import { useMessages } from '@realtimejs/react';
+
+function CustomMessageList() {
+  const { messages } = useMessages();
+
+  return (
+    <ul>
+      {messages.map(msg => (
+        <li key={msg.id} style={{ opacity: msg.status === 'sending' ? 0.5 : 1 }}>
+          {msg.content} 
+          {msg.status === 'failed' && <span className="error">Failed to send</span>}
+        </li>
+      ))}
+    </ul>
+  );
+}
+```

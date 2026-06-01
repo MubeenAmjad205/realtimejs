@@ -1,0 +1,55 @@
+# Building Custom Adapters
+
+RealtimeJS uses an Adapter-Driven Architecture. This means you can rip out our official adapters (like Socket.IO or Native WebSockets) and plug in your own proprietary transport layers without changing a single line of your React UI or business logic.
+
+## The TransportAdapter Interface
+
+To build a custom adapter, you simply need to implement the `TransportAdapter` interface.
+
+```typescript
+import type { TransportAdapter } from '@realtimejs/core';
+
+export function createMyCustomAdapter(): TransportAdapter {
+  return {
+    connect: async () => {
+      // Your connection logic
+    },
+    disconnect: async () => {
+      // Your disconnection logic
+    },
+    emit: async (event: string, payload: unknown) => {
+      // Send data to your server
+    },
+    subscribe: (event: string, callback: (payload: unknown) => void) => {
+      // Listen for data from your server
+      return () => { /* return unsubscribe function */ };
+    },
+    isConnected: () => {
+      // Return boolean status
+      return true; 
+    },
+    onConnect: (callback: () => void) => {
+      return () => {};
+    },
+    onDisconnect: (callback: () => void) => {
+      return () => {};
+    }
+  };
+}
+```
+
+## Validating Your Adapter
+
+The hardest part of building a custom transport is ensuring it behaves exactly like the official ones (handling edge cases, reconnects, etc.).
+
+RealtimeJS ships with a **Contract Test Suite**. You can import this into your Vitest or Jest setup and pass your custom adapter into it. If it passes the test suite, you are 100% guaranteed it will work perfectly with the React SDK.
+
+```typescript
+import { runTransportAdapterContractTests } from '@realtimejs/core/src/adapters/ContractTestSuite';
+import { createMyCustomAdapter } from './MyCustomAdapter';
+
+describe('MyCustomAdapter', () => {
+  // This will run 20+ assertions against your custom adapter!
+  runTransportAdapterContractTests(() => createMyCustomAdapter());
+});
+```

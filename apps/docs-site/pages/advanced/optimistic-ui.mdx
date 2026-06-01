@@ -1,0 +1,31 @@
+# Understanding Optimistic UI
+
+Optimistic UI is a frontend paradigm where the user interface updates *instantly* based on a user's action, assuming that the underlying network request will eventually succeed.
+
+RealtimeJS enforces an Optimistic UI architecture by default through its React SDK.
+
+## The Problem with Traditional UIs
+
+In a traditional application, sending a chat message looks like this:
+1. User clicks "Send".
+2. UI shows a loading spinner.
+3. Network request travels to the server (100ms).
+4. Server processes it and saves to database (50ms).
+5. Network response travels back (100ms).
+6. UI hides spinner and renders the message.
+
+This results in a sluggish, 250ms+ delay for every single message.
+
+## The RealtimeJS Approach
+
+When a user sends a message using `@realtimejs/react`, the following happens:
+
+1. User clicks "Send".
+2. The `useSendMessage` hook instantly generates a temporary UUID and injects the message into the local React state.
+3. The UI renders the message **instantly (0ms latency)**.
+4. The hook asynchronously pushes the message through the `ChatModule` to the `TransportAdapter`.
+5. When the server confirms receipt, the hook silently swaps the temporary UUID with the official database ID.
+
+If the network request fails, the UI automatically flags the message with a red "Failed" status, allowing the user to retry. 
+
+This creates an incredibly fluid, native-feeling user experience, identical to iMessage or WhatsApp.
