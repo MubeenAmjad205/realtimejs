@@ -1,8 +1,8 @@
-import { expect, test, describe, vi } from 'vitest';
+import { expect, test, describe } from 'vitest';
 import { createChatModule } from './ChatModule';
-import { createEventRouter } from '../runtime/EventRouter';
-import { createAdapterRegistry } from '../registry/AdapterRegistry';
-import type { TransportAdapter } from '../adapters/TransportAdapter';
+import { createEventRouter } from '../../runtime/EventRouter';
+import { createAdapterRegistry } from '../../core/config/registry/AdapterRegistry';
+import type { TransportAdapter } from '../../adapters/TransportAdapter';
 
 describe('ChatModule', () => {
   test('sendMessage should emit chat:message to transport', async () => {
@@ -13,16 +13,19 @@ describe('ChatModule', () => {
     const mockTransport: TransportAdapter = {
       connect: async () => {},
       disconnect: async () => {},
-      emit: async (event, payload) => {
+      emit: async (event: string, payload: unknown) => {
         emittedEvent = event;
         emittedPayload = payload;
       },
-      subscribe: (event, callback) => {
+      subscribe: (event: string, callback: any) => {
         if (!listeners.has(event)) listeners.set(event, new Set());
         listeners.get(event)!.add(callback);
       },
-      unsubscribe: () => {},
+      unsubscribe: (event: string) => {},
       isConnected: () => true,
+      onConnect: (callback: () => void) => {},
+      onDisconnect: (callback: () => void) => {},
+      onError: (callback: (error: Error) => void) => {},
     };
 
     const registry = createAdapterRegistry({ transport: mockTransport });
@@ -43,13 +46,16 @@ describe('ChatModule', () => {
     const mockTransport: TransportAdapter = {
       connect: async () => {},
       disconnect: async () => {},
-      emit: async () => {},
-      subscribe: (event, callback) => {
+      emit: async (event: string, payload: unknown) => {},
+      subscribe: (event: string, callback: any) => {
         if (!listeners.has(event)) listeners.set(event, new Set());
         listeners.get(event)!.add(callback);
       },
-      unsubscribe: () => {},
+      unsubscribe: (event: string) => {},
       isConnected: () => true,
+      onConnect: (callback: () => void) => {},
+      onDisconnect: (callback: () => void) => {},
+      onError: (callback: (error: Error) => void) => {},
     };
 
     const registry = createAdapterRegistry({ transport: mockTransport });

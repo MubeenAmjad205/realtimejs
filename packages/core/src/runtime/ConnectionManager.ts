@@ -1,4 +1,4 @@
-import { AdapterRegistry } from '../registry/AdapterRegistry';
+import { AdapterRegistry } from '../core/config/registry/AdapterRegistry';
 
 export function createConnectionManager(registry: AdapterRegistry) {
   const transport = registry.getTransport();

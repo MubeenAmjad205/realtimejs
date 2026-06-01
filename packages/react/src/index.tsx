@@ -46,12 +46,17 @@ export function useRealtime(): RealtimeInstance {
 
 export function useChat(roomId: string, userId: string) {
   const client = useRealtime();
+  
+  if (!client.chat) {
+    throw new Error('Chat module is disabled by feature flags.');
+  }
+  
   const [messages, setMessages] = useState<Message[]>([]);
 
   useEffect(() => {
     client.rooms.join(roomId).catch(console.error);
 
-    const unsubscribe = client.chat.onMessage((msg) => {
+    const unsubscribe = client.chat!.onMessage((msg) => {
       if (msg.roomId === roomId) {
         setMessages((prev) => [...prev, msg]);
       }
@@ -64,7 +69,7 @@ export function useChat(roomId: string, userId: string) {
   }, [client, roomId]);
 
   const sendMessage = async (content: string) => {
-    await client.chat.sendMessage(roomId, content, userId);
+    await client.chat!.sendMessage(roomId, content, userId);
   };
 
   return {
@@ -75,10 +80,15 @@ export function useChat(roomId: string, userId: string) {
 
 export function usePresence() {
   const client = useRealtime();
+
+  if (!client.presence) {
+    throw new Error('Presence module is disabled by feature flags.');
+  }
+
   const [presenceMap, setPresenceMap] = useState<Record<string, PresenceUpdate>>({});
 
   useEffect(() => {
-    const unsubscribe = client.presence.onPresenceUpdate((update) => {
+    const unsubscribe = client.presence!.onPresenceUpdate((update) => {
       setPresenceMap((prev) => ({
         ...prev,
         [update.userId]: update,
@@ -88,7 +98,7 @@ export function usePresence() {
   }, [client]);
 
   const setStatus = async (userId: string, status: UserStatus) => {
-    await client.presence.setStatus(userId, status);
+    await client.presence!.setStatus(userId, status);
   };
 
   return {
@@ -99,10 +109,15 @@ export function usePresence() {
 
 export function useTyping(roomId: string, userId: string) {
   const client = useRealtime();
+
+  if (!client.typing) {
+    throw new Error('Typing module is disabled by feature flags.');
+  }
+
   const [typingUsers, setTypingUsers] = useState<Set<string>>(new Set());
 
   useEffect(() => {
-    const unsubscribe = client.typing.onTypingChange((event) => {
+    const unsubscribe = client.typing!.onTypingChange((event) => {
       if (event.roomId === roomId) {
         setTypingUsers((prev) => {
           const next = new Set(prev);
@@ -118,8 +133,8 @@ export function useTyping(roomId: string, userId: string) {
     return () => { unsubscribe(); };
   }, [client, roomId]);
 
-  const startTyping = async () => client.typing.startTyping(roomId, userId);
-  const stopTyping = async () => client.typing.stopTyping(roomId, userId);
+  const startTyping = async () => client.typing!.startTyping(roomId, userId);
+  const stopTyping = async () => client.typing!.stopTyping(roomId, userId);
 
   return {
     typingUsers: Array.from(typingUsers),

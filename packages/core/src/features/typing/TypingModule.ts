@@ -1,4 +1,4 @@
-import { EventRouter } from '../runtime/EventRouter';
+import { EventRouter } from '../../runtime/EventRouter';
 
 export interface TypingEvent {
   roomId: string;

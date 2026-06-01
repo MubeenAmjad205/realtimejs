@@ -1,4 +1,4 @@
-import { AdapterRegistry } from '../registry/AdapterRegistry';
+import { AdapterRegistry } from '../core/config/registry/AdapterRegistry';
 
 export type EventHandler = (payload: any) => void;
 

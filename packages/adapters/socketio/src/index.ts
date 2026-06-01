@@ -75,5 +75,15 @@ export function socketioAdapter(config: SocketIOAdapterConfig): TransportAdapter
     isConnected: () => {
       return socket ? socket.connected : false;
     },
+    onConnect: (callback) => {
+      socket?.on('connect', callback);
+    },
+    onDisconnect: (callback) => {
+      socket?.on('disconnect', callback);
+    },
+    onError: (callback) => {
+      socket?.on('connect_error', callback);
+      socket?.on('error', callback);
+    },
   };
 }

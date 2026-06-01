@@ -1,6 +1,6 @@
 import { expect, test, describe } from 'vitest';
 import { createAdapterRegistry } from './AdapterRegistry';
-import type { TransportAdapter } from '../adapters/TransportAdapter';
+import type { TransportAdapter } from '../../../adapters/TransportAdapter';
 
 describe('AdapterRegistry', () => {
   test('should throw if getting transport when none is registered', () => {
@@ -13,10 +13,13 @@ describe('AdapterRegistry', () => {
     const mockTransport: TransportAdapter = {
       connect: async () => {},
       disconnect: async () => {},
-      emit: async () => {},
-      subscribe: () => {},
-      unsubscribe: () => {},
+      emit: async (event: string, payload: unknown) => {},
+      subscribe: (event: string, callback: any) => {},
+      unsubscribe: (event: string) => {},
       isConnected: () => true,
+      onConnect: (callback: () => void) => {},
+      onDisconnect: (callback: () => void) => {},
+      onError: (callback: (error: Error) => void) => {},
     };
     
     registry.registerTransport(mockTransport);

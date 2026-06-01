@@ -1,4 +1,3 @@
-import React from 'react';
 import { createRealtime } from '@realtimejs/core';
 import { socketioAdapter } from '@realtimejs/adapter-socketio';
 import { RealtimeProvider, useChat, useTyping } from '@realtimejs/react';

@@ -4,7 +4,7 @@ import {
   AuthAdapter,
   StorageAdapter,
   CacheAdapter,
-} from '../adapters';
+} from '../../../adapters';
 
 export interface AdapterRegistryState {
   transport?: TransportAdapter;

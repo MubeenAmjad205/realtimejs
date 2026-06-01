@@ -1,4 +1,4 @@
-import { EventRouter } from '../runtime/EventRouter';
+import { EventRouter } from '../../runtime/EventRouter';
 
 export type UserStatus = 'online' | 'offline' | 'away' | 'busy';
 

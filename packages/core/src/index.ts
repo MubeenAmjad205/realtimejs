@@ -1,23 +1,28 @@
 export const VERSION = '0.1.0';
 
 export * from './adapters';
-export * from './registry/AdapterRegistry';
+export * from './core/config/registry/AdapterRegistry';
 
 // Core Modules
 export * from './runtime/ConnectionManager';
 export * from './runtime/EventRouter';
-export * from './rooms/RoomManager';
-export * from './chat/ChatModule';
-export * from './presence/PresenceModule';
-export * from './typing/TypingModule';
+export * from './features/rooms/RoomManager';
+export * from './features/chat/ChatModule';
+export * from './features/presence/PresenceModule';
+export * from './features/typing/TypingModule';
 
-import { createAdapterRegistry, AdapterRegistryState } from './registry/AdapterRegistry';
+import { createAdapterRegistry, AdapterRegistryState } from './core/config/registry/AdapterRegistry';
 import { createConnectionManager } from './runtime/ConnectionManager';
 import { createEventRouter } from './runtime/EventRouter';
-import { createRoomManager } from './rooms/RoomManager';
-import { createChatModule } from './chat/ChatModule';
-import { createPresenceModule } from './presence/PresenceModule';
-import { createTypingModule } from './typing/TypingModule';
+import { createRoomManager } from './features/rooms/RoomManager';
+import { createChatModule } from './features/chat/ChatModule';
+import { createPresenceModule } from './features/presence/PresenceModule';
+import { createTypingModule } from './features/typing/TypingModule';
+
+// Constants
+export * from './shared/constants/flags';
+export * from './shared/constants/config';
+import { FEATURE_FLAGS } from './shared/constants/flags';
 
 export function createRealtime(config: AdapterRegistryState) {
   const registry = createAdapterRegistry(config);
@@ -29,9 +34,11 @@ export function createRealtime(config: AdapterRegistryState) {
   const events = createEventRouter(registry);
   
   const rooms = createRoomManager(events);
-  const chat = createChatModule(events, registry);
-  const presence = createPresenceModule(events);
-  const typing = createTypingModule(events);
+  
+  // Conditionally load features based on mandatory feature flags
+  const chat = FEATURE_FLAGS.ENABLE_CHAT ? createChatModule(events, registry) : null;
+  const presence = FEATURE_FLAGS.ENABLE_PRESENCE ? createPresenceModule(events) : null;
+  const typing = FEATURE_FLAGS.ENABLE_TYPING ? createTypingModule(events) : null;
 
   return {
     registry,

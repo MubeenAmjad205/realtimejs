@@ -1,4 +1,4 @@
-import { EventRouter } from '../runtime/EventRouter';
+import { EventRouter } from '../../runtime/EventRouter';
 
 export function createRoomManager(eventRouter: EventRouter) {
   const rooms = new Set<string>();
