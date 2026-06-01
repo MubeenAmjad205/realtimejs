@@ -1,0 +1,14 @@
+{
+  "name": "@realtimejs/adapter-s3",
+  "version": "0.1.1",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@realtimejs/core": "*",
+    "@aws-sdk/client-s3": "*"
+  }
+}

@@ -67,11 +67,17 @@ export function useChat(roomId: string, userId: string) {
   const [messages, setMessages] = useState<Message[]>([]);
 
   useEffect(() => {
+    setMessages([]);
     client.rooms.join(roomId).catch(console.error);
 
     const unsubMessage = client.chat!.onMessage((msg) => {
       if (msg.roomId === roomId) {
-        setMessages((prev) => [...prev, msg]);
+        setMessages((prev) => {
+          if (prev.some(m => m.id === msg.id)) {
+            return prev.map(m => m.id === msg.id ? msg : m);
+          }
+          return [...prev, msg];
+        });
       }
     });
 
@@ -88,11 +94,21 @@ export function useChat(roomId: string, userId: string) {
         if (m.id === payload.messageId) {
           const reactions = m.reactions ? { ...m.reactions } : {};
           const users = reactions[payload.emoji] || [];
-          reactions[payload.emoji] = [...new Set([...users, payload.userId])];
+          if (users.includes(payload.userId)) {
+            reactions[payload.emoji] = users.filter(id => id !== payload.userId);
+            if (reactions[payload.emoji].length === 0) delete reactions[payload.emoji];
+          } else {
+            reactions[payload.emoji] = [...users, payload.userId];
+          }
+
           return { ...m, reactions };
         }
         return m;
       }));
+    });
+
+    const unsubStatus = client.chat!.onMessageStatus((payload) => {
+      setMessages((prev) => prev.map(m => m.id === payload.messageId ? { ...m, status: payload.status } : m));
     });
 
     return () => {
@@ -100,17 +116,40 @@ export function useChat(roomId: string, userId: string) {
       unsubEdit();
       unsubDelete();
       unsubReact();
+      unsubStatus();
       client.rooms.leave(roomId).catch(console.error);
     };
   }, [client, roomId]);
 
   const sendMessage = useCallback(async (content: string, threadId?: string, attachments?: File[]) => {
     const tempId = 'temp-' + Date.now();
-    const tempMessage: Message = { id: tempId, roomId, userId, content, createdAt: Date.now(), status: 'sending', ...(threadId ? { threadId } : {}) };
+    
+    const optAttachments = attachments?.map(file => ({
+      id: `opt-${Math.random()}`,
+      url: URL.createObjectURL(file),
+      type: (file.type.startsWith('image/') ? 'image' : 'file') as 'image' | 'video' | 'file',
+      size: file.size
+    }));
+
+    const tempMessage: Message = { 
+      id: tempId, 
+      roomId, 
+      userId, 
+      content, 
+      createdAt: Date.now(), 
+      status: 'sending', 
+      ...(threadId ? { threadId } : {}),
+      ...(optAttachments && optAttachments.length > 0 ? { attachments: optAttachments } : {})
+    };
+    
     setMessages((prev) => [...prev, tempMessage]);
     try {
       const realMessage = await client.chat!.sendMessage(roomId, content, userId, threadId, attachments);
-      setMessages((prev) => prev.map(m => m.id === tempId ? realMessage : m));
+      setMessages((prev) => {
+        const withoutTemp = prev.filter(m => m.id !== tempId);
+        if (withoutTemp.some(m => m.id === realMessage.id)) return withoutTemp;
+        return [...withoutTemp, realMessage];
+      });
     } catch (error) {
       setMessages((prev) => prev.map(m => m.id === tempId ? { ...m, status: 'failed' } : m));
       throw error;
@@ -136,7 +175,11 @@ export function useChat(roomId: string, userId: string) {
   }, [client, userId]);
   
   const toggleReaction = useCallback(async (messageId: string, emoji: string) => {
-    await client.chat!.toggleReaction(messageId, emoji, userId);
+    try {
+      await client.chat!.toggleReaction(messageId, emoji, userId);
+    } catch (err) {
+      console.error('toggleReaction error:', err);
+    }
   }, [client, userId]);
   
   const loadHistory = useCallback(async (limit?: number, cursor?: string) => {
@@ -145,7 +188,23 @@ export function useChat(roomId: string, userId: string) {
     return history;
   }, [client, roomId]);
 
-  return { messages, sendMessage, editMessage, deleteMessage, toggleReaction, loadHistory };
+  const markRead = useCallback(async (messageId: string) => {
+    try {
+      await client.chat!.markRead(messageId);
+    } catch (error) {
+      console.error('[DEBUG] markRead error:', error);
+    }
+  }, [client]);
+
+  const retry = useCallback(async (messageId: string) => {
+    try {
+      await client.chat!.retry(messageId);
+    } catch (error) {
+      console.error('[DEBUG] retry error:', error);
+    }
+  }, [client]);
+
+  return { messages, sendMessage, editMessage, deleteMessage, toggleReaction, loadHistory, markRead, retry };
 }
 
 export function useMessages() {
@@ -253,3 +312,12 @@ export * from './ui/UserAvatar';
 export * from './ui/MessageItem';
 export * from './ui/OnlineUsers';
 export * from './ui/Chat';
+export * from './ui/Sidebar';
+export * from './ui/ChatLayout';
+export * from './ui/Modal';
+export * from './ui/GroupInfoPane';
+
+// Config & Features
+export * from './config/features';
+export * from './config/ui';
+export * from './config/ConfigProvider';

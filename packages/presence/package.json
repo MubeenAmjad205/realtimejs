@@ -1,0 +1,14 @@
+{
+  "name": "@realtimejs/presence",
+  "version": "0.1.1",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@realtimejs/shared": "*",
+    "@realtimejs/events": "*"
+  }
+}

@@ -18,5 +18,14 @@
     "build": "tsc",
     "test": "vitest run --passWithNoTests",
     "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@realtimejs/shared": "*",
+    "@realtimejs/events": "*",
+    "@realtimejs/chat": "*",
+    "@realtimejs/presence": "*",
+    "@realtimejs/typing": "*",
+    "@realtimejs/rooms": "*",
+    "@realtimejs/sessions": "*"
   }
 }

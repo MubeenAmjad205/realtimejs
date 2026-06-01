@@ -28,5 +28,17 @@
     "@testing-library/react": "^16.3.2",
     "@types/react": "^19.2.15",
     "jsdom": "^29.1.1"
+  },
+  "dependencies": {
+    "@realtimejs/chat": "*",
+    "@realtimejs/core": "^0.1.0",
+    "@realtimejs/events": "*",
+    "@realtimejs/presence": "*",
+    "@realtimejs/rooms": "*",
+    "@realtimejs/sessions": "*",
+    "@realtimejs/shared": "*",
+    "@realtimejs/typing": "*",
+    "emoji-picker-react": "^4.19.1",
+    "lucide-react": "^1.17.0"
   }
 }
