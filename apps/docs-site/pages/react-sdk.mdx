@@ -1,0 +1,54 @@
+# React SDK
+
+The `@realtimejs/react` package provides a suite of highly optimized, production-ready React Hooks and context providers for building realtime interfaces instantly.
+
+It wraps the core engine with an **Optimistic UI architecture**, ensuring that user interactions feel zero-latency while transparently handling network sync, offline queueing, and state management in the background.
+
+## Setup
+
+Wrap your application in the `RealtimeProvider`.
+
+```tsx
+import { RealtimeProvider } from '@realtimejs/react';
+import { createRealtime } from '@realtimejs/core';
+import { createSocketIOAdapter } from '@realtimejs/adapter-socketio';
+
+const client = createRealtime({ 
+  transport: createSocketIOAdapter('http://localhost:3000') 
+});
+
+export function App() {
+  return (
+    <RealtimeProvider client={client}>
+      <YourApp />
+    </RealtimeProvider>
+  );
+}
+```
+
+## ChatProvider & Extensible Components
+
+RealtimeJS includes headless hooks, but it also provides beautiful, accessible, and completely extensible drop-in UI components.
+
+```tsx
+import { Chat, ChatProvider } from '@realtimejs/react';
+
+function QuickChat() {
+  return (
+    <ChatProvider roomId="room-1" userId="user-123">
+      {/* 
+        The <Chat /> component accepts a `components` prop allowing you 
+        to inject your own CustomMessage, CustomInput, or CustomIndicator components!
+      */}
+      <Chat roomId="room-1" userId="user-123" />
+    </ChatProvider>
+  );
+}
+```
+
+## Hooks API
+
+- `useRealtime()` - Access the raw core engine.
+- `useChat(roomId, userId)` - Unified messaging hook with Optimistic UI updates.
+- `usePresence()` - Real-time user online/offline mapping.
+- `useTyping(roomId, userId)` - Real-time typing indicator tracking.

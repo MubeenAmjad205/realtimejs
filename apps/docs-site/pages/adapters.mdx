@@ -1,0 +1,33 @@
+# Adapters
+
+RealtimeJS uses an **Adapter-Driven Architecture**. This means the core engine contains the business logic, offline queueing, and state management, but it delegates the actual network operations to adapters.
+
+## Official Adapters
+
+### @realtimejs/adapter-socketio
+
+The official Socket.IO transport layer. It bridges the gap between Socket.IO's bidirectional event architecture and RealtimeJS's standard adapter contract.
+
+```typescript
+import { createSocketIOAdapter } from '@realtimejs/adapter-socketio';
+
+const transport = createSocketIOAdapter('https://your-socket-server.com');
+```
+
+### @realtimejs/adapter-websocket
+
+The official native WebSocket transport layer. It utilizes the browser's native `WebSocket` API, requiring absolutely no third-party dependencies. Perfect for Edge environments.
+
+```typescript
+import { createWebSocketAdapter } from '@realtimejs/adapter-websocket';
+
+const transport = createWebSocketAdapter('wss://your-websocket-server.com/ws');
+```
+
+## Creating Custom Adapters
+
+You can build your own custom adapter for databases, storage, or transport. To ensure your custom adapter complies with the RealtimeJS standard, run it against our built-in Contract Test Suite!
+
+```typescript
+import { runTransportAdapterContractTests } from '@realtimejs/core/src/adapters/ContractTestSuite';
+```

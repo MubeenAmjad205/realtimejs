@@ -1,0 +1,45 @@
+# Getting Started
+
+Learn how to get RealtimeJS up and running in under 5 minutes.
+
+## Installation
+
+RealtimeJS is built with modularity in mind. You need to install the core engine along with a transport adapter. If you are using React, you should also install the React SDK.
+
+```bash
+npm install @realtimejs/core @realtimejs/react @realtimejs/adapter-socketio socket.io-client
+```
+
+## Basic Initialization
+
+To initialize RealtimeJS, you need to create an adapter and pass it into the `createRealtime` factory.
+
+```typescript
+import { createRealtime } from '@realtimejs/core';
+import { createSocketIOAdapter } from '@realtimejs/adapter-socketio';
+
+// 1. Create a transport adapter pointing to your backend
+const transport = createSocketIOAdapter('http://localhost:3000');
+
+// 2. Initialize the core engine
+const client = createRealtime({ transport });
+
+// 3. Connect to the server
+await client.connection.connect();
+```
+
+## Sending a Message
+
+Once connected, you can interact with the various modules seamlessly.
+
+```typescript
+// Send a message
+const message = await client.chat.sendMessage('room-1', 'Hello World!', 'user-123');
+
+// Listen for incoming messages
+client.chat.onMessage((msg) => {
+  console.log('Received:', msg.content);
+});
+```
+
+Check out the [React SDK](./react-sdk.mdx) section for documentation on how to use our highly optimized React hooks and UI components!
