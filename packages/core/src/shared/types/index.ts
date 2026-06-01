@@ -9,7 +9,10 @@ export interface Message {
   threadId?: string;
   reactions?: Record<string, string[]>;
   attachments?: Attachment[];
+  status?: MessageStatus;
 }
+
+export type MessageStatus = 'sending' | 'sent' | 'delivered' | 'read' | 'failed';
 
 export interface Attachment {
   id: string;

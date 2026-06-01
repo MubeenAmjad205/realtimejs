@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useEffect, useState, ReactNode } from 'react';
+import React, { createContext, useContext, useEffect, useState, ReactNode, useCallback } from 'react';
 import type { 
   createRealtime, 
   Message, 
@@ -34,6 +34,19 @@ export function RealtimeProvider({ client, children }: RealtimeProviderProps) {
       {children}
     </RealtimeContext.Provider>
   );
+}
+
+export const ChatContext = createContext<{ roomId: string; userId: string } | null>(null);
+export function ChatProvider({ roomId, userId, children }: { roomId: string; userId: string; children: ReactNode }) {
+  return <ChatContext.Provider value={{ roomId, userId }}>{children}</ChatContext.Provider>;
+}
+
+export function PresenceProvider({ children }: { children: ReactNode }) {
+  return <>{children}</>; // Presence logic relies on RealtimeProvider
+}
+
+export function TypingProvider({ children }: { children: ReactNode }) {
+  return <>{children}</>;
 }
 
 export function useRealtime(): RealtimeInstance {
@@ -91,36 +104,62 @@ export function useChat(roomId: string, userId: string) {
     };
   }, [client, roomId]);
 
-  const sendMessage = async (content: string, threadId?: string) => {
-    await client.chat!.sendMessage(roomId, content, userId, threadId);
-  };
+  const sendMessage = useCallback(async (content: string, threadId?: string, attachments?: File[]) => {
+    const tempId = 'temp-' + Date.now();
+    const tempMessage: Message = { id: tempId, roomId, userId, content, createdAt: Date.now(), status: 'sending', ...(threadId ? { threadId } : {}) };
+    setMessages((prev) => [...prev, tempMessage]);
+    try {
+      const realMessage = await client.chat!.sendMessage(roomId, content, userId, threadId, attachments);
+      setMessages((prev) => prev.map(m => m.id === tempId ? realMessage : m));
+    } catch (error) {
+      setMessages((prev) => prev.map(m => m.id === tempId ? { ...m, status: 'failed' } : m));
+      throw error;
+    }
+  }, [client, roomId, userId]);
   
-  const editMessage = async (messageId: string, content: string) => {
-    await client.chat!.editMessage(messageId, content);
-  };
+  const editMessage = useCallback(async (messageId: string, content: string) => {
+    setMessages((prev) => prev.map(m => m.id === messageId ? { ...m, content, editedAt: Date.now() } : m));
+    try {
+      await client.chat!.editMessage(messageId, content, userId);
+    } catch (error) {
+      console.error(error);
+    }
+  }, [client, userId]);
   
-  const deleteMessage = async (messageId: string) => {
-    await client.chat!.deleteMessage(messageId);
-  };
+  const deleteMessage = useCallback(async (messageId: string) => {
+    setMessages((prev) => prev.map(m => m.id === messageId ? { ...m, isDeleted: true } : m));
+    try {
+      await client.chat!.deleteMessage(messageId, userId);
+    } catch (error) {
+      console.error(error);
+    }
+  }, [client, userId]);
   
-  const toggleReaction = async (messageId: string, emoji: string) => {
+  const toggleReaction = useCallback(async (messageId: string, emoji: string) => {
     await client.chat!.toggleReaction(messageId, emoji, userId);
-  };
+  }, [client, userId]);
   
-  const loadHistory = async (limit?: number, cursor?: string) => {
+  const loadHistory = useCallback(async (limit?: number, cursor?: string) => {
     const history = await client.chat!.getMessages(roomId, limit, cursor);
     setMessages((prev) => [...history, ...prev]);
     return history;
-  };
+  }, [client, roomId]);
 
-  return {
-    messages,
-    sendMessage,
-    editMessage,
-    deleteMessage,
-    toggleReaction,
-    loadHistory,
-  };
+  return { messages, sendMessage, editMessage, deleteMessage, toggleReaction, loadHistory };
+}
+
+export function useMessages() {
+  const ctx = useContext(ChatContext);
+  if (!ctx) throw new Error('useMessages requires ChatProvider');
+  const chat = useChat(ctx.roomId, ctx.userId);
+  return { messages: chat.messages, loadHistory: chat.loadHistory };
+}
+
+export function useSendMessage() {
+  const ctx = useContext(ChatContext);
+  if (!ctx) throw new Error('useSendMessage requires ChatProvider');
+  const chat = useChat(ctx.roomId, ctx.userId);
+  return chat.sendMessage;
 }
 
 export function usePresence() {
