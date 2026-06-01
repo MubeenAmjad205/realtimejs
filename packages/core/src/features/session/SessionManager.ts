@@ -2,6 +2,7 @@ import { EventRouter } from '../../runtime/EventRouter';
 import { AdapterRegistry } from '../../core/config/registry/AdapterRegistry';
 import type { SessionState } from '../../shared/types';
 import { generateId, getCurrentTimestamp } from '../../shared/utils';
+import { RealtimeError, ERROR_CODES } from '../../shared/utils/errors';
 
 export function createSessionManager(events: EventRouter, registry: AdapterRegistry) {
   let state: SessionState = {
@@ -17,11 +18,11 @@ export function createSessionManager(events: EventRouter, registry: AdapterRegis
   return {
     authenticate: async (token: string) => {
       if (!authAdapter) {
-        throw new Error('AuthAdapter is not registered.');
+        throw new RealtimeError(ERROR_CODES.AUTH_ADAPTER_MISSING, 'AuthAdapter is not registered');
       }
       
-      const user = await authAdapter.getUser(token) as any;
-      if (!user) throw new Error('Invalid token');
+      const user = await authAdapter.getUser(token) as { id?: string; userId?: string };
+      if (!user) throw new RealtimeError(ERROR_CODES.INVALID_TOKEN, 'Invalid token');
       
       state = {
         sessionId: generateId(),

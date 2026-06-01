@@ -14,7 +14,7 @@ describe('AdapterRegistry', () => {
       connect: async () => {},
       disconnect: async () => {},
       emit: async (event: string, payload: unknown) => {},
-      subscribe: (event: string, callback: any) => {},
+      subscribe: (event: string, callback: (payload: unknown) => void) => {},
       unsubscribe: (event: string) => {},
       isConnected: () => true,
       onConnect: (callback: () => void) => {},

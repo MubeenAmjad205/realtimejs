@@ -8,6 +8,14 @@ export interface Message {
   isDeleted?: boolean;
   threadId?: string;
   reactions?: Record<string, string[]>;
+  attachments?: Attachment[];
+}
+
+export interface Attachment {
+  id: string;
+  url: string;
+  type: 'image' | 'video' | 'file';
+  size: number;
 }
 
 export interface SessionState {

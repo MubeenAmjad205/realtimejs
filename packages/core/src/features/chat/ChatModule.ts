@@ -5,6 +5,7 @@ import { generateId, getCurrentTimestamp } from '../../shared/utils';
 
 export function createChatModule(eventRouter: EventRouter, registry: AdapterRegistry) {
   const db = registry.getDatabase(); // Optional Database
+  const storage = registry.getStorage(); // Optional Storage
   
   const listeners: Set<(message: Message) => void> = new Set();
   const editListeners: Set<(message: Partial<Message>) => void> = new Set();
@@ -28,7 +29,26 @@ export function createChatModule(eventRouter: EventRouter, registry: AdapterRegi
   });
 
   return {
-    sendMessage: async (roomId: string, content: string, userId: string, threadId?: string) => {
+    sendMessage: async (roomId: string, content: string, userId: string, threadId?: string, attachments?: File[]) => {
+      let uploadedAttachments: any[] = [];
+      
+      if (attachments && attachments.length > 0) {
+        if (!storage) {
+          throw new Error('Storage adapter is required to upload attachments.');
+        }
+        
+        uploadedAttachments = await Promise.all(attachments.map(async (file) => {
+          const buffer = new Uint8Array(await file.arrayBuffer());
+          const url = await storage.upload(`chat/${roomId}/${generateId()}`, buffer, file.type);
+          return {
+            id: generateId(),
+            url,
+            type: file.type.startsWith('image/') ? 'image' : 'file',
+            size: file.size
+          };
+        }));
+      }
+
       const message: Message = {
         id: generateId(),
         roomId,
@@ -36,6 +56,7 @@ export function createChatModule(eventRouter: EventRouter, registry: AdapterRegi
         content,
         createdAt: getCurrentTimestamp(),
         ...(threadId ? { threadId } : {}),
+        ...(uploadedAttachments.length > 0 ? { attachments: uploadedAttachments } : {}),
       };
       
       if (db) {

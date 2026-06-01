@@ -17,7 +17,7 @@ describe('ChatModule', () => {
         emittedEvent = event;
         emittedPayload = payload;
       },
-      subscribe: (event: string, callback: any) => {
+      subscribe: (event: string, callback: (payload: unknown) => void) => {
         if (!listeners.has(event)) listeners.set(event, new Set());
         listeners.get(event)!.add(callback);
       },
@@ -47,7 +47,7 @@ describe('ChatModule', () => {
       connect: async () => {},
       disconnect: async () => {},
       emit: async (event: string, payload: unknown) => {},
-      subscribe: (event: string, callback: any) => {
+      subscribe: (event: string, callback: (payload: unknown) => void) => {
         if (!listeners.has(event)) listeners.set(event, new Set());
         listeners.get(event)!.add(callback);
       },

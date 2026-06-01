@@ -188,8 +188,29 @@ export function useTyping(roomId: string, userId: string) {
   };
 }
 
+export function useRoom(roomId: string) {
+  const client = useRealtime();
+
+  const join = async (metadata?: Record<string, unknown>) => {
+    await client.rooms.join(roomId, metadata);
+  };
+
+  const leave = async () => {
+    await client.rooms.leave(roomId);
+  };
+
+  return {
+    join,
+    leave,
+  };
+}
+
 // UI Components
 export * from './ui/ChatRoom';
 export * from './ui/MessageList';
 export * from './ui/MessageInput';
 export * from './ui/TypingIndicator';
+export * from './ui/UserAvatar';
+export * from './ui/MessageItem';
+export * from './ui/OnlineUsers';
+export * from './ui/Chat';

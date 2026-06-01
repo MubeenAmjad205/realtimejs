@@ -28,6 +28,7 @@ export * from './shared/constants/flags';
 export * from './shared/constants/config';
 export * from './shared/types';
 export * from './shared/utils';
+export * from './shared/utils/errors';
 import { FEATURE_FLAGS } from './shared/constants/flags';
 
 export function createRealtime(config: AdapterRegistryState) {
@@ -39,10 +40,10 @@ export function createRealtime(config: AdapterRegistryState) {
   const connection = createConnectionManager(registry);
   const events = createEventRouter(registry);
   
-  const rooms = createRoomManager(events);
+  const rooms = createRoomManager(events, registry);
   
   const chat = FEATURE_FLAGS.ENABLE_CHAT ? createChatModule(events, registry) : null;
-  const presence = FEATURE_FLAGS.ENABLE_PRESENCE ? createPresenceModule(events) : null;
+  const presence = FEATURE_FLAGS.ENABLE_PRESENCE ? createPresenceModule(events, registry) : null;
   const typing = FEATURE_FLAGS.ENABLE_TYPING ? createTypingModule(events) : null;
   const session = createSessionManager(events, registry);
   const plugins = createPluginManager();

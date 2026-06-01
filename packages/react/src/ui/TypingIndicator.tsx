@@ -8,7 +8,7 @@ export function TypingIndicator({ users, className = '' }: { users: string[], cl
     : `${users.length} people are typing...`;
     
   return (
-    <div className={`text-xs text-gray-500 italic px-4 py-1 ${className}`}>
+    <div className={`text-xs text-gray-500 italic px-4 py-1 ${className}`} aria-live="polite" aria-atomic="true">
       {text}
     </div>
   );

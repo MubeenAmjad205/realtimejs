@@ -1,7 +1,7 @@
 export interface RealtimePlugin {
   name: string;
   version: string;
-  onInit?: (client: any) => void | Promise<void>;
+  onInit?: (client: unknown) => void | Promise<void>;
   onDestroy?: () => void | Promise<void>;
 }
 
@@ -9,7 +9,7 @@ export function createPluginManager() {
   const plugins = new Map<string, RealtimePlugin>();
 
   return {
-    register: async (plugin: RealtimePlugin, client: any) => {
+    register: async (plugin: RealtimePlugin, client: unknown) => {
       if (plugins.has(plugin.name)) {
         throw new Error(`Plugin ${plugin.name} is already registered.`);
       }
