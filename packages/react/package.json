@@ -1,8 +1,19 @@
 {
   "name": "@realtimejs/react",
   "version": "0.1.0",
+  "description": "Official React hooks (useChat, usePresence) and UI primitives.",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
+  "files": [
+    "dist"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/MubeenAmjad205/realtimejs.git",
+    "directory": "packages/react"
+  },
+  "author": "Mubeen Amjad",
+  "license": "MIT",
   "scripts": {
     "build": "tsc"
   },

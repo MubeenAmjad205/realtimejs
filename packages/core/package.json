@@ -1,8 +1,19 @@
 {
   "name": "@realtimejs/core",
   "version": "0.1.0",
+  "description": "Framework-agnostic realtime engine and state machine.",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
+  "files": [
+    "dist"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/MubeenAmjad205/realtimejs.git",
+    "directory": "packages/core"
+  },
+  "author": "Mubeen Amjad",
+  "license": "MIT",
   "scripts": {
     "build": "tsc"
   }

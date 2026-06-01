@@ -1,8 +1,19 @@
 {
   "name": "@realtimejs/adapter-socketio",
   "version": "0.1.0",
+  "description": "Standard Socket.IO transport adapter.",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
+  "files": [
+    "dist"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/MubeenAmjad205/realtimejs.git",
+    "directory": "packages/adapters/socketio"
+  },
+  "author": "Mubeen Amjad",
+  "license": "MIT",
   "scripts": {
     "build": "tsc"
   },
