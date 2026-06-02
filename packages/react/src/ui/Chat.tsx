@@ -3,7 +3,7 @@ import { ChatRoom } from './ChatRoom';
 import { MessageList } from './MessageList';
 import { MessageInput } from './MessageInput';
 import { TypingIndicator } from './TypingIndicator';
-import { useChat, useTyping } from '../index';
+import { useChatContext, ChatProvider } from '../index';
 import { useUIConfig, UIConfigProvider } from '../config/ConfigProvider';
 import { Modal } from './Modal';
 
@@ -20,8 +20,15 @@ export interface ChatProps {
 }
 
 export function Chat({ roomId, userId, components = {} }: ChatProps) {
-  const { messages, sendMessage, toggleReaction, editMessage, deleteMessage, markRead, retry, loadHistory } = useChat(roomId, userId);
-  const { typingUsers, startTyping, stopTyping } = useTyping(roomId, userId);
+  return (
+    <ChatProvider roomId={roomId} userId={userId}>
+      <ChatInner components={components} />
+    </ChatProvider>
+  );
+}
+
+function ChatInner({ components = {} }: { components?: ChatComponents }) {
+  const { messages, sendMessage, toggleReaction, editMessage, deleteMessage, markRead, retry, loadHistory, userId, typingUsers, startTyping, stopTyping } = useChatContext();
   const { ui, features } = useUIConfig();
 
   const [replyingToId, setReplyingToId] = useState<string | null>(null);

@@ -12,9 +12,10 @@ It wraps the `@realtimejs/core` engine with an **Optimistic UI architecture**, e
 
 ## Features
 
-- ⚡️ **Optimistic UI:** Messages instantly appear in the UI before network confirmation.
-- 🔄 **Re-render Optimized:** Heavy use of `useCallback` and `useMemo` prevents React waterfall renders.
-- 🧩 **Headless & Pre-built UI:** Use raw hooks to build your own UI, or use the extensible `<Chat />` wrapper component.
+- ⚡️ **Optimistic UI & Mutation Queue:** Messages instantly appear in the UI. Offline actions (edits, deletes) are safely queued and synced upon reconnection.
+- 🔄 **Re-render Optimized (Zero-Latency):** Heavy use of `useCallback` and `useMemo` combined with Context-state-hoisting prevents React waterfall renders.
+- 🧠 **Context-Driven Architecture:** Inject custom inputs, headers, or messages instantly using `useChatContext()` without prop-drilling.
+- ⚙️ **Dynamic UI Configuration:** Expose a user settings dashboard effortlessly using `UIConfigProvider` and the `updateConfig` dispatcher.
 - ♿️ **Accessible by Default:** All included components are ARIA-compliant (live regions, interactive roles).
 
 ## Installation
@@ -51,12 +52,11 @@ export function App() {
 ### 2. Using the Hooks
 
 ```tsx
-import { useChat, usePresence } from '@realtimejs/react';
+import { useChatContext } from '@realtimejs/react';
 
-function ChatInterface() {
-  // Access memoized state and methods
-  const { messages, sendMessage } = useChat('room-1', 'user-123');
-  const { presenceMap } = usePresence();
+function CustomChatInterface() {
+  // Access memoized state and methods directly from the Provider!
+  const { messages, sendMessage } = useChatContext();
 
   return (
     <div>
@@ -90,12 +90,11 @@ function QuickChat() {
 
 ## Available Hooks
 - `useRealtime()` - Access the raw core engine.
-- `useChat(roomId, userId)` - Unified messaging hook.
-- `useMessages()` - Granular scoped messaging hook.
-- `useSendMessage()` - Granular scoped sender hook.
+- `useChatContext()` - Access hoisted messaging, typing, and room states safely inside a `ChatProvider`.
 - `usePresence()` - User online/offline mapping.
-- `useTyping(roomId, userId)` - Typing indicator tracking.
-- `useRoom(roomId)` - Manage room multiplexing connections.
+- `useUIConfig()` - Access and dispatch global Settings (like read receipts or pagination limits).
+- `useChat(roomId, userId)` - Low-level messaging hook (used internally by `ChatProvider`).
+- `useTyping(roomId, userId)` - Low-level typing indicator tracking (used internally by `ChatProvider`).
 
 ## License
 

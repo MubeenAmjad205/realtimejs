@@ -24,6 +24,26 @@ import { createWebSocketAdapter } from '@realtimejs/adapter-websocket';
 const transport = createWebSocketAdapter('wss://your-websocket-server.com/ws');
 ```
 
+### @realtimejs/adapter-postgres
+
+The official PostgreSQL adapter. It operates as a blazing-fast schemaless document store using a single `JSONB` column, allowing it to seamlessly handle highly dynamic realtime objects (like reactions or editing history) without requiring constant schema migrations.
+
+```typescript
+import { createPostgresAdapter } from '@realtimejs/adapter-postgres';
+
+const database = createPostgresAdapter('postgres://user:pass@localhost:5432/realtime');
+```
+
+### @realtimejs/adapter-s3
+
+The official AWS S3 storage adapter. Safely upload media using `PutObjectCommand` and automatically resolve public edge-cached URLs.
+
+```typescript
+import { createS3Adapter } from '@realtimejs/adapter-s3';
+
+const storage = createS3Adapter('my-realtime-bucket', 'us-east-1');
+```
+
 ## Creating Custom Adapters
 
 You can build your own custom adapter for databases, storage, or transport. To ensure your custom adapter complies with the RealtimeJS standard, run it against our built-in Contract Test Suite!

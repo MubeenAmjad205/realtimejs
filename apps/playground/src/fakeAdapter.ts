@@ -12,24 +12,45 @@ export function createFakeStorage(): StorageAdapter {
       return URL.createObjectURL(blob);
     },
     download: async (path: string) => {
-      throw new Error('Not implemented in fake');
+      // Fake download returning empty byte array
+      return new Uint8Array();
     },
     delete: async (path: string) => {
       return true;
+    },
+    getUrl: async (path: string) => {
+      return `blob:${path}`;
     }
   };
 }
 
 export function createFakeDatabase(): DatabaseAdapter {
+  const MOCK_HISTORY: Record<string, unknown[]> = {
+    'product-sync': [
+      { id: 'msg-1', roomId: 'product-sync', userId: 'alice', content: 'Did we finish the release notes?', createdAt: Date.now() - 4000000, status: 'read' },
+      { id: 'msg-2', roomId: 'product-sync', userId: 'bob', content: 'Yes, just waiting on design.', createdAt: Date.now() - 3800000, status: 'read' },
+      { id: 'msg-3', roomId: 'product-sync', userId: 'user-999', content: 'Are we launching today?', createdAt: Date.now() - 3600000, status: 'read' },
+    ],
+    'alice-dm': [
+      { id: 'msg-4', roomId: 'alice-dm', userId: 'alice', content: 'Hey, can you review my PR?', createdAt: Date.now() - 86500000, status: 'read' },
+      { id: 'msg-5', roomId: 'alice-dm', userId: 'alice', content: 'Can you check the PR?', createdAt: Date.now() - 86400000, status: 'read' },
+    ]
+  };
+
   return {
     create: async () => ({}),
     update: async () => ({}),
     delete: async () => true,
     find: async () => null,
-    findMany: async () => {
+    findMany: async (collection, query: Record<string, string>) => {
       // Simulate pagination delay
       await new Promise(resolve => setTimeout(resolve, 500));
-      return []; // Return an empty array so "Load older messages" finishes without crashing
+      
+      // If asking for chat history for a specific room
+      if (collection === 'messages' && query && query.roomId) {
+        return MOCK_HISTORY[query.roomId] || [];
+      }
+      return []; 
     }
   };
 }
@@ -38,7 +59,7 @@ export function createFakeAdapter(): TransportAdapter {
   const listeners: Record<string, Function[]> = {};
   let connected = true;
 
-  const emitToClient = (event: string, payload: any) => {
+  const emitToClient = (event: string, payload: unknown) => {
     if (listeners[event]) {
       listeners[event].forEach(cb => cb(payload));
     }
@@ -55,7 +76,7 @@ export function createFakeAdapter(): TransportAdapter {
     },
     onDisconnect: (cb) => { return () => {}; },
     
-    emit: async (event, payload: any) => {
+    emit: async (event, payload: unknown) => {
       if (event === 'chat:send_message') {
         // Simulate network delay
         await new Promise(resolve => setTimeout(resolve, 600));

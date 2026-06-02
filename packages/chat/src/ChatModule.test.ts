@@ -8,7 +8,7 @@ describe('ChatModule', () => {
   test('sendMessage should emit chat:message to transport', async () => {
     const listeners = new Map<string, Set<Function>>();
     let emittedEvent: string | null = null;
-    let emittedPayload: any = null;
+    let emittedPayload: unknown = null;
 
     const mockTransport: TransportAdapter = {
       connect: async () => {},
@@ -62,7 +62,7 @@ describe('ChatModule', () => {
     const events = createEventRouter(registry);
     const chat = createChatModule(events, registry);
 
-    const received: any[] = [];
+    const received: unknown[] = [];
     chat.onMessage((msg) => received.push(msg));
 
     // Simulate transport receiving an event from the server

@@ -1,3 +1,5 @@
+import { RealtimeError, ERROR_CODES } from '@realtimejs/shared/src/utils/errors';
+
 export interface TransportAdapter {
   connect(): Promise<void>;
   disconnect(): Promise<void>;
@@ -39,8 +41,8 @@ export class WebSocketAdapter implements TransportAdapter {
           this.ws = null;
           this.onDisconnectListeners.forEach(cb => cb());
         };
-        this.ws.onerror = (err: any) => {
-          const error = new Error('WebSocket error');
+        this.ws.onerror = (err: Event) => {
+          const error = new RealtimeError(ERROR_CODES.NETWORK_DISCONNECTED, 'WebSocket error');
           this.onErrorListeners.forEach(cb => cb(error));
           reject(error);
         };
@@ -54,7 +56,7 @@ export class WebSocketAdapter implements TransportAdapter {
             console.error('Failed to parse WebSocket message', e);
           }
         };
-      } catch (err: any) {
+      } catch (err: unknown) {
         reject(err);
       }
     });
@@ -69,7 +71,7 @@ export class WebSocketAdapter implements TransportAdapter {
   }
 
   async emit(event: string, payload: unknown): Promise<void> {
-    if (!this.connected || !this.ws) throw new Error('Not connected');
+    if (!this.connected || !this.ws) throw new RealtimeError(ERROR_CODES.NETWORK_DISCONNECTED, 'Not connected');
     this.ws.send(JSON.stringify({ event, payload }));
   }
 

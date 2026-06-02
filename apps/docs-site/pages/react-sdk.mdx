@@ -2,7 +2,7 @@
 
 The `@realtimejs/react` package provides a suite of highly optimized, production-ready React Hooks and context providers for building realtime interfaces instantly.
 
-It wraps the core engine with an **Optimistic UI architecture**, ensuring that user interactions feel zero-latency while transparently handling network sync, offline queueing, and state management in the background.
+It wraps the core engine with an **Optimistic UI architecture**, ensuring that user interactions feel zero-latency. It also heavily utilizes a **Context-Driven Architecture**, allowing you to bypass prop-drilling entirely by safely extracting state using `useChatContext()`.
 
 ## Setup
 
@@ -31,7 +31,7 @@ export function App() {
 RealtimeJS includes headless hooks, but it also provides beautiful, accessible, and completely extensible drop-in UI components.
 
 ```tsx
-import { Chat, ChatProvider } from '@realtimejs/react';
+import { Chat, ChatProvider, useChatContext } from '@realtimejs/react';
 
 function QuickChat() {
   return (
@@ -40,15 +40,55 @@ function QuickChat() {
         The <Chat /> component accepts a `components` prop allowing you 
         to inject your own CustomMessage, CustomInput, or CustomIndicator components!
       */}
-      <Chat roomId="room-1" userId="user-123" />
+      <Chat 
+        roomId="room-1" 
+        userId="user-123" 
+        components={{ MessageInput: MyCustomInput }}
+      />
     </ChatProvider>
+  );
+}
+
+// Building a custom input is trivially simple using the Context hook!
+function MyCustomInput() {
+  const { sendMessage } = useChatContext();
+
+  return (
+    <button onClick={() => sendMessage('Hello World!')}>
+      Quick Send
+    </button>
+  );
+}
+```
+
+## Global UI Settings
+
+You can expose a beautiful settings menu for your users to instantly toggle read receipts, presence, and other features.
+
+```tsx
+import { UIConfigProvider, useUIConfig } from '@realtimejs/react';
+
+function SettingsMenu() {
+  const { features, updateConfig } = useUIConfig();
+
+  return (
+    <label>
+      Enable Read Receipts
+      <input 
+        type="checkbox" 
+        checked={features.ENABLE_READ_RECEIPTS} 
+        onChange={(e) => updateConfig({ 
+          features: { ...features, ENABLE_READ_RECEIPTS: e.target.checked } 
+        })}
+      />
+    </label>
   );
 }
 ```
 
 ## Hooks API
 
-- `useRealtime()` - Access the raw core engine.
-- `useChat(roomId, userId)` - Unified messaging hook with Optimistic UI updates.
+- `useChatContext()` - Safely extracts hoisted state inside a `ChatProvider`.
+- `useUIConfig()` - Exposes the `features`, `ui`, and `updateConfig` settings dispatcher.
 - `usePresence()` - Real-time user online/offline mapping.
-- `useTyping(roomId, userId)` - Real-time typing indicator tracking.
+- `useRealtime()` - Access the raw core engine.

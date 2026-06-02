@@ -33,9 +33,9 @@ const mockClient = {
     connect: vi.fn().mockResolvedValue(undefined),
     disconnect: vi.fn().mockResolvedValue(undefined),
   }
-} as any;
+} as unknown as RealtimeInstance;
 
-const wrapper = ({ children }: { children: any }) => (
+const wrapper = ({ children }: { children: React.ReactNode }) => (
   <RealtimeProvider client={mockClient}>{children}</RealtimeProvider>
 );
 

@@ -1,4 +1,5 @@
 import type { TransportAdapter } from '@realtimejs/core';
+import { RealtimeError, ERROR_CODES } from '@realtimejs/shared/src/utils/errors';
 import { io, Socket, ManagerOptions, SocketOptions } from 'socket.io-client';
 
 export interface SocketIOAdapterConfig {
@@ -8,8 +9,10 @@ export interface SocketIOAdapterConfig {
 
 export function socketioAdapter(config: SocketIOAdapterConfig): TransportAdapter {
   let socket: Socket | null = null;
-  // Store listeners so they can be reattached if the socket reconnects or is recreated
   const eventListeners = new Map<string, Set<(payload: unknown) => void>>();
+  const onConnectListeners = new Set<() => void>();
+  const onDisconnectListeners = new Set<() => void>();
+  const onErrorListeners = new Set<(error: Error) => void>();
 
   return {
     connect: () => {
@@ -24,11 +27,21 @@ export function socketioAdapter(config: SocketIOAdapterConfig): TransportAdapter
         });
 
         socket.once('connect', () => {
+          onConnectListeners.forEach(cb => cb());
           resolve();
         });
 
+        socket.on('disconnect', () => {
+          onDisconnectListeners.forEach(cb => cb());
+        });
+
         socket.once('connect_error', (err) => {
+          onErrorListeners.forEach(cb => cb(err));
           reject(err);
+        });
+
+        socket.on('error', (err) => {
+          onErrorListeners.forEach(cb => cb(err));
         });
 
         // Re-attach persistent listeners for user-defined events
@@ -49,7 +62,7 @@ export function socketioAdapter(config: SocketIOAdapterConfig): TransportAdapter
 
     emit: async (event: string, payload: unknown) => {
       if (!socket || !socket.connected) {
-        throw new Error('Socket.IO is not connected. Call connect() first.');
+        throw new RealtimeError(ERROR_CODES.NETWORK_DISCONNECTED, 'Socket.IO is not connected. Call connect() first.');
       }
       socket.emit(event, payload);
     },
@@ -76,14 +89,14 @@ export function socketioAdapter(config: SocketIOAdapterConfig): TransportAdapter
       return socket ? socket.connected : false;
     },
     onConnect: (callback) => {
-      socket?.on('connect', callback);
+      onConnectListeners.add(callback);
+      if (socket?.connected) callback();
     },
     onDisconnect: (callback) => {
-      socket?.on('disconnect', callback);
+      onDisconnectListeners.add(callback);
     },
     onError: (callback) => {
-      socket?.on('connect_error', callback);
-      socket?.on('error', callback);
+      onErrorListeners.add(callback);
     },
   };
 }

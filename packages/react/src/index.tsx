@@ -36,17 +36,28 @@ export function RealtimeProvider({ client, children }: RealtimeProviderProps) {
   );
 }
 
-export const ChatContext = createContext<{ roomId: string; userId: string } | null>(null);
+export type ChatContextType = ReturnType<typeof useChat> & ReturnType<typeof useTyping> & {
+  roomId: string;
+  userId: string;
+};
+
+export const ChatContext = createContext<ChatContextType | null>(null);
+
 export function ChatProvider({ roomId, userId, children }: { roomId: string; userId: string; children: ReactNode }) {
-  return <ChatContext.Provider value={{ roomId, userId }}>{children}</ChatContext.Provider>;
+  const chat = useChat(roomId, userId);
+  const typing = useTyping(roomId, userId);
+  
+  return (
+    <ChatContext.Provider value={{ roomId, userId, ...chat, ...typing }}>
+      {children}
+    </ChatContext.Provider>
+  );
 }
 
-export function PresenceProvider({ children }: { children: ReactNode }) {
-  return <>{children}</>; // Presence logic relies on RealtimeProvider
-}
-
-export function TypingProvider({ children }: { children: ReactNode }) {
-  return <>{children}</>;
+export function useChatContext(): ChatContextType {
+  const context = useContext(ChatContext);
+  if (!context) throw new Error('useChatContext must be used within a ChatProvider');
+  return context;
 }
 
 export function useRealtime(): RealtimeInstance {
@@ -207,19 +218,7 @@ export function useChat(roomId: string, userId: string) {
   return { messages, sendMessage, editMessage, deleteMessage, toggleReaction, loadHistory, markRead, retry };
 }
 
-export function useMessages() {
-  const ctx = useContext(ChatContext);
-  if (!ctx) throw new Error('useMessages requires ChatProvider');
-  const chat = useChat(ctx.roomId, ctx.userId);
-  return { messages: chat.messages, loadHistory: chat.loadHistory };
-}
-
-export function useSendMessage() {
-  const ctx = useContext(ChatContext);
-  if (!ctx) throw new Error('useSendMessage requires ChatProvider');
-  const chat = useChat(ctx.roomId, ctx.userId);
-  return chat.sendMessage;
-}
+// Deleted legacy useMessages and useSendMessage which were anti-patterns
 
 export function usePresence() {
   const client = useRealtime();

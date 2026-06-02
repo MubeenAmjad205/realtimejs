@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { createRealtime } from '@realtimejs/core';
 import { createFakeAdapter, createFakeStorage, createFakeDatabase } from './fakeAdapter';
 import { RealtimeProvider, useChat, useTyping, usePresence, UIConfigProvider, useUIConfig } from '@realtimejs/react';
-import { ChatRoom, MessageList, MessageInput, TypingIndicator, ChatLayout, Sidebar, Modal, GroupInfoPane } from '@realtimejs/react';
+import { ChatRoom, MessageList, MessageInput, TypingIndicator, ChatLayout, Sidebar, Modal, GroupInfoPane, GlobalConfig } from '@realtimejs/react';
 
 // Use a fake adapter so the playground works perfectly without needing a backend server!
 const realtimeClient = createRealtime({
@@ -23,6 +23,7 @@ function ChatApp() {
   ]);
 
   const { messages, sendMessage, toggleReaction, editMessage, deleteMessage, markRead, retry, loadHistory } = useChat(activeRoomId, USER_ID);
+  const { features: featureConfig, ui: uiConfig, updateConfig } = useUIConfig();
   const { typingUsers, startTyping, stopTyping } = useTyping(activeRoomId, USER_ID);
   const { presenceMap, setStatus } = usePresence();
   const { ui } = useUIConfig();
@@ -40,11 +41,14 @@ function ChatApp() {
   React.useEffect(() => {
     if (messages.length > 0) {
       const lastMsg = messages[messages.length - 1];
-      setConversations(prev => prev.map(c => 
-        c.id === activeRoomId 
-          ? { ...c, lastMessage: lastMsg.content || 'Photo', timestamp: lastMsg.createdAt } 
-          : c
-      ));
+      // Only update if the message actually belongs to the active room
+      if (lastMsg.roomId === activeRoomId) {
+        setConversations(prev => prev.map(c => 
+          c.id === activeRoomId 
+            ? { ...c, lastMessage: lastMsg.content || 'Photo', timestamp: lastMsg.createdAt } 
+            : c
+        ));
+      }
     }
   }, [messages, activeRoomId]);
   
@@ -53,6 +57,17 @@ function ChatApp() {
 
   const [replyingToId, setReplyingToId] = useState<string | null>(null);
   const [hasMore, setHasMore] = useState(true);
+
+  // Automatically load history when entering a room
+  React.useEffect(() => {
+    // Small delay to allow the room to join first
+    const timer = setTimeout(() => {
+      loadHistory(20).then(history => {
+        if (history.length < 20) setHasMore(false);
+      });
+    }, 100);
+    return () => clearTimeout(timer);
+  }, [activeRoomId, loadHistory]);
   
   const handleReply = (msgId: string) => {
     setReplyingToId(msgId);
@@ -96,6 +111,7 @@ function ChatApp() {
               activeConversationId={activeRoomId} 
               onSelectConversation={(id) => {
                 setActiveRoomId(id);
+                setConversations(prev => prev.map(c => c.id === id ? { ...c, unreadCount: 0 } : c));
                 setShowSidebarOnMobile(false);
               }} 
               onNewChat={() => setShowNewChat(true)}
@@ -200,10 +216,58 @@ function ChatApp() {
         onClose={() => setShowSettings(false)}
         title="Settings"
         actions={
-          <button onClick={() => setShowSettings(false)} className="bg-[#00A884] text-[#111B21] hover:bg-[#00C298] px-6 py-2 rounded font-medium shadow-sm transition-colors">OK</button>
+          <button onClick={() => setShowSettings(false)} className="bg-[#00A884] text-[#111B21] hover:bg-[#00C298] px-6 py-2 rounded font-medium shadow-sm transition-colors">DONE</button>
         }
       >
-        <p className="text-[#8696A0]">Settings menu is coming soon! You will be able to customize your theme and notifications here.</p>
+        <div className="flex flex-col gap-4 py-2">
+          <p className="text-[#8696A0] text-sm mb-2">Toggle SDK features on the fly. These will instantly update the UI through the ConfigProvider.</p>
+          
+          <label className="flex items-center justify-between cursor-pointer">
+            <span className="text-[#E9EDEF]">Typing Indicators</span>
+            <input 
+              type="checkbox" 
+              checked={featureConfig.ENABLE_TYPING_INDICATORS} 
+              onChange={(e) => updateConfig({ features: { ...featureConfig, ENABLE_TYPING_INDICATORS: e.target.checked } })}
+              className="accent-[#00A884] w-4 h-4"
+            />
+          </label>
+          <label className="flex items-center justify-between cursor-pointer">
+            <span className="text-[#E9EDEF]">Presence (Online Status)</span>
+            <input 
+              type="checkbox" 
+              checked={featureConfig.ENABLE_PRESENCE_INDICATORS} 
+              onChange={(e) => updateConfig({ features: { ...featureConfig, ENABLE_PRESENCE_INDICATORS: e.target.checked } })}
+              className="accent-[#00A884] w-4 h-4"
+            />
+          </label>
+          <label className="flex items-center justify-between cursor-pointer">
+            <span className="text-[#E9EDEF]">Read Receipts (Blue Ticks)</span>
+            <input 
+              type="checkbox" 
+              checked={featureConfig.ENABLE_READ_RECEIPTS} 
+              onChange={(e) => updateConfig({ features: { ...featureConfig, ENABLE_READ_RECEIPTS: e.target.checked } })}
+              className="accent-[#00A884] w-4 h-4"
+            />
+          </label>
+          <label className="flex items-center justify-between cursor-pointer">
+            <span className="text-[#E9EDEF]">Message Reactions</span>
+            <input 
+              type="checkbox" 
+              checked={featureConfig.ENABLE_REACTIONS} 
+              onChange={(e) => updateConfig({ features: { ...featureConfig, ENABLE_REACTIONS: e.target.checked } })}
+              className="accent-[#00A884] w-4 h-4"
+            />
+          </label>
+          <label className="flex items-center justify-between cursor-pointer border-t border-white/5 pt-4 mt-2">
+            <span className="text-[#E9EDEF]">Pagination Limit</span>
+            <input 
+              type="number" 
+              value={uiConfig.PAGINATION_LIMIT} 
+              onChange={(e) => updateConfig({ ui: { ...uiConfig, PAGINATION_LIMIT: parseInt(e.target.value) || 20 } })}
+              className="bg-[#202C33] text-white px-2 py-1 rounded w-16 text-center outline-none border border-transparent focus:border-[#00A884]"
+            />
+          </label>
+        </div>
       </Modal>
 
     </div>
@@ -213,16 +277,7 @@ function ChatApp() {
 export function App() {
   return (
     <RealtimeProvider client={realtimeClient}>
-      <UIConfigProvider config={{
-        features: {
-          ENABLE_TYPING_INDICATORS: true,
-          ENABLE_PRESENCE_INDICATORS: true,
-          ENABLE_PAGINATION: true
-        },
-        ui: {
-          PAGINATION_LIMIT: 20
-        }
-      }}>
+      <UIConfigProvider>
         <ChatApp />
       </UIConfigProvider>
     </RealtimeProvider>

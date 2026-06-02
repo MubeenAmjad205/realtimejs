@@ -11,7 +11,7 @@ describe('Chat Integration Flow', () => {
     const emitSpy = vi.fn();
 
     const mockTransport = {
-      emit: async (event: string, payload: any) => {
+      emit: async (event: string, payload: unknown) => {
         if (!isConnected) throw new Error('Not connected');
         emitSpy(event, payload);
       },
@@ -23,7 +23,7 @@ describe('Chat Integration Flow', () => {
       onError: () => {}
     };
 
-    const registry = createAdapterRegistry({ transport: mockTransport as any });
+    const registry = createAdapterRegistry({ transport: mockTransport as unknown as TransportAdapter });
     const events = createEventRouter(registry);
     const chat = createChatModule(events, registry);
 

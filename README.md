@@ -18,10 +18,11 @@ RealtimeJS gives you **full control over your UI** (Headless-First) and **full c
 
 ## ✨ Features
 
-- 🧠 **Headless-First:** We provide the logic (`useChat`, `usePresence`); you bring your own UI (or use our copy-pasteable Tailwind components).
+- 🧠 **Headless-First (Context-Driven):** The `<ChatProvider>` hoists all engine state. Use our `useChatContext()` hook to seamlessly inject your own UI components without deep prop-drilling!
+- ⚡️ **Optimistic UI & Mutation Queue:** Instant visual feedback. Messages, edits, deletes, and reactions instantly appear while a robust background mutation queue ensures safe network syncing, even through reconnections.
 - 🧩 **Framework Agnostic:** The core engine is pure TypeScript. Use our official React SDK today, or build your own wrapper for Vue/Svelte.
 - 🔌 **Adapter Architecture:** Swap out Socket.IO for native WebSockets—or Postgres for MongoDB—by simply changing a single adapter. No app rewrites required.
-- 🚀 **Production Ready:** Built-in connection lifecycle management, optimistic updates, and room state handling out of the box.
+- ⚙️ **Dynamic UI Configuration:** Easily toggle read receipts, presence, and pagination globally using `UIConfigProvider`.
 
 ## 📖 Table of Contents
 - [Installation](#-installation)
@@ -71,31 +72,27 @@ export function App() {
 ### 2. Build Your Chat UI
 Use our headless hooks to instantly wire up chat logic without writing boilerplate. We export un-opinionated UI components you can use right away.
 
-```tsx
 // ChatApp.tsx
 import React from 'react';
-import { useChat, useTyping } from '@realtimejs/react';
-import { ChatRoom, MessageList, MessageInput, TypingIndicator } from '@realtimejs/react';
+import { Chat, ChatProvider, useChatContext } from '@realtimejs/react';
 
 export function ChatApp() {
   const ROOM_ID = 'general';
   const USER_ID = 'user-123'; // In production, get this from your Auth context
 
-  const { messages, sendMessage } = useChat(ROOM_ID, USER_ID);
-  const { typingUsers, startTyping, stopTyping } = useTyping(ROOM_ID, USER_ID);
-
   return (
     <div className="h-screen max-w-md mx-auto py-10">
-      <ChatRoom>
-        <MessageList messages={messages} currentUserId={USER_ID} />
-        <TypingIndicator users={typingUsers} />
-        <MessageInput 
-          onSend={sendMessage} 
-          onTyping={(isTyping) => isTyping ? startTyping() : stopTyping()} 
-        />
-      </ChatRoom>
+      <ChatProvider roomId={ROOM_ID} userId={USER_ID}>
+        <Chat roomId={ROOM_ID} userId={USER_ID} />
+      </ChatProvider>
     </div>
   );
+}
+
+// Want a custom input? Just use the context!
+function CustomInput() {
+  const { sendMessage } = useChatContext();
+  return <button onClick={() => sendMessage('Hello World!')}>Send</button>;
 }
 ```
 
@@ -110,10 +107,13 @@ RealtimeJS relies on an **Adapter Architecture**. The Core never imports Socket.
 | Package | Version | Description |
 |---|---|---|
 | `@realtimejs/core` | [![npm version](https://img.shields.io/npm/v/@realtimejs/core.svg?style=flat-square)](https://npmjs.com/package/@realtimejs/core) | Framework-agnostic realtime engine and state machine. |
-| `@realtimejs/react` | [![npm version](https://img.shields.io/npm/v/@realtimejs/react.svg?style=flat-square)](https://npmjs.com/package/@realtimejs/react) | Official React hooks (`useChat`, `usePresence`) and UI primitives. |
+| `@realtimejs/react` | [![npm version](https://img.shields.io/npm/v/@realtimejs/react.svg?style=flat-square)](https://npmjs.com/package/@realtimejs/react) | Official React hooks (`useChatContext`, `usePresence`) and UI primitives. |
 | `@realtimejs/adapter-socketio` | [![npm version](https://img.shields.io/npm/v/@realtimejs/adapter-socketio.svg?style=flat-square)](https://npmjs.com/package/@realtimejs/adapter-socketio) | Standard Socket.IO transport adapter. |
+| `@realtimejs/adapter-websocket` | [![npm version](https://img.shields.io/npm/v/@realtimejs/adapter-websocket.svg?style=flat-square)](https://npmjs.com/package/@realtimejs/adapter-websocket) | Zero-dependency native WebSocket adapter. |
+| `@realtimejs/adapter-postgres` | [![npm version](https://img.shields.io/npm/v/@realtimejs/adapter-postgres.svg?style=flat-square)](https://npmjs.com/package/@realtimejs/adapter-postgres) | Dynamic JSONB PostgreSQL database adapter. |
+| `@realtimejs/adapter-s3` | [![npm version](https://img.shields.io/npm/v/@realtimejs/adapter-s3.svg?style=flat-square)](https://npmjs.com/package/@realtimejs/adapter-s3) | AWS S3 storage adapter. |
 
-*(More adapters for Databases, LiveKit WebRTC, and Authentication are on the roadmap).*
+*(More adapters for MongoDB, LiveKit WebRTC, and Authentication are on the roadmap).*
 
 ---
 
@@ -132,8 +132,8 @@ This repository uses `npm workspaces`. To publish your own fork or modifications
 ## 🤝 Contributing
 
 We love open source! Because RealtimeJS uses an Adapter architecture, the best way to contribute is to **build new adapters**. 
-- Want to use WebSockets instead of Socket.IO? Build `@realtimejs/adapter-websocket`.
-- Want to persist messages? Build `@realtimejs/adapter-postgres`.
+- Want to persist messages differently? Build `@realtimejs/adapter-mongodb`.
+- Want to use a different cloud? Build `@realtimejs/adapter-gcs`.
 
 Please read our [Engineering Standards](docs/12-engineering-standards.md) before submitting a PR.
 

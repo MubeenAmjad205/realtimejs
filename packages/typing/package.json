@@ -8,7 +8,7 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@realtimejs/shared": "*",
-    "@realtimejs/events": "*"
+    "@realtimejs/events": "^0.1.1",
+    "@realtimejs/shared": "^0.1.1"
   }
 }

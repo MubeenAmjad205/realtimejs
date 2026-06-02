@@ -38,7 +38,7 @@ export function MessageInput({ onSend, onTyping, className = '', replyingTo, onC
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  const insertEmoji = (emojiData: any) => {
+  const insertEmoji = (emojiData: { emoji: string }) => {
     setText(prev => prev + emojiData.emoji);
   };
 

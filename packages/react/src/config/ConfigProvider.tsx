@@ -12,7 +12,14 @@ const DEFAULT_CONFIG: GlobalConfig = {
   ui: DEFAULT_UI_CONFIG,
 };
 
-const ConfigContext = createContext<GlobalConfig>(DEFAULT_CONFIG);
+export interface ConfigContextType extends GlobalConfig {
+  updateConfig: (newConfig: Partial<GlobalConfig>) => void;
+}
+
+const ConfigContext = createContext<ConfigContextType>({
+  ...DEFAULT_CONFIG,
+  updateConfig: () => {}
+});
 
 export interface UIConfigProviderProps {
   config?: Partial<{
@@ -23,13 +30,20 @@ export interface UIConfigProviderProps {
 }
 
 export function UIConfigProvider({ config, children }: UIConfigProviderProps) {
-  const mergedConfig: GlobalConfig = {
+  const [currentConfig, setCurrentConfig] = React.useState<GlobalConfig>({
     features: { ...DEFAULT_FEATURE_FLAGS, ...config?.features },
-    ui: { ...DEFAULT_UI_CONFIG, ...config?.ui },
+    ui: { ...DEFAULT_UI_CONFIG, ...config?.ui }
+  });
+
+  const updateConfig = (newConfig: Partial<GlobalConfig>) => {
+    setCurrentConfig(prev => ({
+      features: { ...prev.features, ...(newConfig.features || {}) },
+      ui: { ...prev.ui, ...(newConfig.ui || {}) }
+    }));
   };
 
   return (
-    <ConfigContext.Provider value={mergedConfig}>
+    <ConfigContext.Provider value={{ ...currentConfig, updateConfig }}>
       {children}
     </ConfigContext.Provider>
   );

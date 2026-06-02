@@ -46,8 +46,8 @@ export function runTransportAdapterContractTests(
     it('should emit and subscribe to events', async () => {
       await adapter.connect();
       
-      let receivedPayload: any = null;
-      adapter.subscribe('test:event', (payload: any) => {
+      let receivedPayload: unknown = null;
+      adapter.subscribe('test:event', (payload: unknown) => {
         receivedPayload = payload;
       });
 

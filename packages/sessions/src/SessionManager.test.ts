@@ -11,8 +11,8 @@ describe('SessionManager', () => {
     };
     
     const mockTransport = { emit: vi.fn(), subscribe: vi.fn(), unsubscribe: vi.fn(), isConnected: () => true, onConnect: vi.fn(), onDisconnect: vi.fn(), onError: vi.fn() };
-    const registry = createAdapterRegistry({ transport: mockTransport as any });
-    registry.registerAuth(mockAuth as any);
+    const registry = createAdapterRegistry({ transport: mockTransport as unknown as TransportAdapter });
+    registry.registerAuth(mockAuth as unknown as AuthAdapter);
     const events = createEventRouter(registry);
     const session = createSessionManager(events, registry);
     
@@ -24,7 +24,7 @@ describe('SessionManager', () => {
 
   it('should logout user', async () => {
     const mockTransport = { emit: vi.fn(), subscribe: vi.fn(), unsubscribe: vi.fn(), isConnected: () => true, onConnect: vi.fn(), onDisconnect: vi.fn(), onError: vi.fn() };
-    const registry = createAdapterRegistry({ transport: mockTransport as any });
+    const registry = createAdapterRegistry({ transport: mockTransport as unknown as TransportAdapter });
     const events = createEventRouter(registry);
     const session = createSessionManager(events, registry);
     

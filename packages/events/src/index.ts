@@ -1,6 +1,6 @@
 import { AdapterRegistry } from '../core/config/registry/AdapterRegistry';
 
-export type EventHandler = (payload: any) => void;
+export type EventHandler = (payload: unknown) => void;
 
 export function createEventRouter(registry: AdapterRegistry) {
   const transport = registry.getTransport();
@@ -12,7 +12,7 @@ export function createEventRouter(registry: AdapterRegistry) {
     off: (event: string) => {
       transport.unsubscribe(event);
     },
-    emit: async (event: string, payload: any) => {
+    emit: async (event: string, payload: unknown) => {
       await transport.emit(event, payload);
     }
   };
