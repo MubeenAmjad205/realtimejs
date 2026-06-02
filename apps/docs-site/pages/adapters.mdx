@@ -51,3 +51,39 @@ You can build your own custom adapter for databases, storage, or transport. To e
 ```typescript
 import { runTransportAdapterContractTests } from '@realtimejs/core/src/adapters/ContractTestSuite';
 ```
+
+Ran command: `npm version minor --workspaces`
+
+The error you're encountering is a classic monorepo publishing gotcha!
+
+When you run `npm version`, NPM successfully updates all the `package.json` files to `0.2.0`, but then it automatically attempts to run an `npm install` to update your `package-lock.json`. During that install, it checks the public NPM registry for `@realtimejs/events@^0.1.1` to resolve dependencies, but since it has **never been published before**, the registry returns a 404 Not Found, causing the command to crash.
+
+Additionally, as noted in the README, you cannot publish packages under the `@realtimejs` namespace unless you explicitly own that organization on NPM.
+
+Here is the exact strategy to successfully publish:
+
+### Option 1: Rename to Your Own NPM Scope (Recommended)
+
+If you don't own the `@realtimejs` organization on NPM, you will get a `403 Forbidden` error when you try to publish anyway. You need to do a global find-and-replace in your codebase to change `@realtimejs/` to your personal NPM username (e.g., `@mubeen/`):
+
+1. Replace all instances of `"@realtimejs/` with `"@yourusername/` across all `package.json` files.
+2. Run `npm install` to relink the local workspaces.
+3. Commit the changes, then run `npm publish --workspaces --access public`.
+
+### Option 2: Skip the Install Step (If you own the `@realtimejs` org)
+
+If you _do_ own the organization and just want to get past this 404 error so you can publish for the very first time, tell NPM to skip the automatic install step during versioning:
+
+```bash
+npm version minor --workspaces --no-git-tag-version --ignore-scripts
+```
+
+_(Note: You might need to revert the previous partial `npm version` changes using `git reset --hard` before running this)._
+
+Then, publish them to the registry:
+
+```bash
+npm publish --workspaces --access public
+```
+
+Let me know which route you'd like to take! If you want to rename the scope, I can automatically execute the global find-and-replace for you right now.

@@ -1,6 +1,6 @@
 {
   "name": "@realtimejs/react",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "Official React hooks (useChat, usePresence) and UI primitives.",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
