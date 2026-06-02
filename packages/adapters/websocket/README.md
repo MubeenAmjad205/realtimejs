@@ -1,19 +1,17 @@
 # @realtimejs/adapter-websocket
 
-> Native WebSocket transport adapter for RealtimeJS.
+> The official websocket module for RealtimeJS.
 
-![RealtimeJS](https://img.shields.io/badge/RealtimeJS-Adapter-orange.svg)
-![WebSocket](https://img.shields.io/badge/Native-WebSocket-black.svg)
+![RealtimeJS](https://img.shields.io/badge/RealtimeJS-Adapter-blue.svg)
+![TypeScript](https://img.shields.io/badge/TypeScript-Strict-blue.svg)
 ![License](https://img.shields.io/badge/License-MIT-green.svg)
 
-`@realtimejs/adapter-websocket` is the official native WebSocket transport layer for the RealtimeJS core engine. It utilizes the browser's native `WebSocket` API, requiring absolutely no third-party dependencies.
+This package is a core component of the **RealtimeJS** framework.
 
-## Features
+## Overview
 
-- Fully implements the `TransportAdapter` interface.
-- **Zero dependencies** (uses native browser APIs).
-- Extremely lightweight.
-- Compatible with Edge functions, Deno, and modern environments.
+`@realtimejs/adapter-websocket` provides robust, type-safe infrastructure used by the RealtimeJS engine. 
+While this package can be used independently in advanced scenarios, it is typically orchestrated automatically by the `@realtimejs/core` engine.
 
 ## Installation
 
@@ -21,27 +19,12 @@
 npm install @realtimejs/adapter-websocket
 ```
 
-## Usage
+## Documentation
 
-```typescript
-import { createRealtime } from '@realtimejs/core';
-import { createWebSocketAdapter } from '@realtimejs/adapter-websocket';
+For full documentation, architecture diagrams, and quick-start guides, please visit the main repository.
 
-// Create the adapter pointing to your ws:// or wss:// backend
-const transport = createWebSocketAdapter('wss://your-websocket-server.com/ws');
-
-// Inject into RealtimeJS
-const client = createRealtime({ transport });
-
-await client.connection.connect();
-```
-
-## When to use this vs Socket.IO?
-
-Use `@realtimejs/adapter-websocket` when:
-- You are connecting to a backend that speaks raw WebSockets (e.g., Go/Rust/Elixir servers).
-- You want the absolute smallest bundle size possible.
-- You do not need long-polling fallbacks for old browsers.
+- 📚 [Full Documentation](https://github.com/MubeenAmjad205/realtimejs)
+- 🚀 [React SDK Guide](https://github.com/MubeenAmjad205/realtimejs/tree/main/packages/react)
 
 ## License
 

@@ -1,6 +1,6 @@
-# @realtimejs/adapter-socketio
+# @realtimejs/adapter-postgres
 
-> Standard Socket.IO transport adapter.
+> The official postgres module for RealtimeJS.
 
 ![RealtimeJS](https://img.shields.io/badge/RealtimeJS-Adapter-blue.svg)
 ![TypeScript](https://img.shields.io/badge/TypeScript-Strict-blue.svg)
@@ -10,13 +10,13 @@ This package is a core component of the **RealtimeJS** framework.
 
 ## Overview
 
-`@realtimejs/adapter-socketio` provides robust, type-safe infrastructure used by the RealtimeJS engine. 
+`@realtimejs/adapter-postgres` provides robust, type-safe infrastructure used by the RealtimeJS engine. 
 While this package can be used independently in advanced scenarios, it is typically orchestrated automatically by the `@realtimejs/core` engine.
 
 ## Installation
 
 ```bash
-npm install @realtimejs/adapter-socketio
+npm install @realtimejs/adapter-postgres
 ```
 
 ## Documentation
